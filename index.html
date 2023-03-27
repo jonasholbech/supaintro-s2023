@@ -7,6 +7,14 @@
     <title>Document</title>
   </head>
   <body>
+    <main></main>
+    <template>
+      <article>
+        <h2>NAME HERE</h2>
+        <button class="update">UPDATE WINE</button>
+        <button class="delete">DELETE WINE</button>
+      </article>
+    </template>
     <button id="post">POST</button>
     <script>
       document.querySelector("#post").addEventListener("click", post);
@@ -19,12 +27,31 @@
           },
         })
           .then((e) => e.json())
-          .then((e) => console.log(e));
+          .then((data) => {
+            const t = document.querySelector("template").content;
+            document.querySelector("main").innerHTML = "";
+            data.forEach((wine) => {
+              const copy = t.cloneNode(true);
+              copy.querySelector("h2").textContent = wine.name;
+              copy
+                .querySelector("button.delete")
+                .addEventListener("click", () => {
+                  deleteWine(wine.id);
+                });
+              copy
+                .querySelector("button.update")
+                .addEventListener("click", () => {
+                  patch(wine.id);
+                });
+              document.querySelector("main").appendChild(copy);
+            });
+          });
       }
+      get();
 
       function post() {
         const newWine = {
-          name: "Dannie's Wine",
+          name: "Peter's Wine",
           grapes: ["pinor lightblue"],
           year: 1986,
           type: "white",
@@ -32,7 +59,7 @@
             country: "Denmark",
             region: "Nordsjælland",
           },
-          isGood: false,
+          isGood: true,
         };
 
         fetch("https://uwrwptibotlxlvcdeicv.supabase.co/rest/v1/wines", {
@@ -46,7 +73,47 @@
           body: JSON.stringify(newWine),
         })
           .then((e) => e.json())
-          .then((e) => console.log(e));
+          .then((e) => get());
+      }
+
+      //DELETE
+      function deleteWine(id) {
+        fetch(
+          "https://uwrwptibotlxlvcdeicv.supabase.co/rest/v1/wines?id=eq." + id,
+          {
+            method: "delete",
+            headers: {
+              "Content-Type": "application/json",
+              Prefer: "return=representation",
+              apikey:
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV3cndwdGlib3RseGx2Y2RlaWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NjQ3OTI4MDYsImV4cCI6MTk4MDM2ODgwNn0.FuHj1T6qJO-wQ_aWaaXNFVfZPG45FsnE3RvHd3PGQmA",
+            },
+          }
+        )
+          .then((e) => e.json())
+          .then((e) => get());
+      }
+
+      function patch(id) {
+        const updates = {
+          name: "Lasses Wine",
+          isGood: true,
+        };
+
+        fetch(
+          "https://uwrwptibotlxlvcdeicv.supabase.co/rest/v1/wines?id=eq." + id,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              apikey:
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV3cndwdGlib3RseGx2Y2RlaWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NjQ3OTI4MDYsImV4cCI6MTk4MDM2ODgwNn0.FuHj1T6qJO-wQ_aWaaXNFVfZPG45FsnE3RvHd3PGQmA",
+            },
+            body: JSON.stringify(updates),
+          }
+        )
+          .then((e) => e.json())
+          .then((e) => get());
       }
     </script>
   </body>
